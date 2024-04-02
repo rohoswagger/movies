@@ -119,6 +119,46 @@ class MovieService extends BaseService {
     return this.axios(baseUrl).get<TmdbPagingResponse>(this.urlBuilder(req));
   }
 
+  // static getShows = cache(async (requests: ShowRequest[]) => {
+  //   const shows: CategorizedShows[] = [];
+  //   const promises = requests.map((m) => this.executeRequest(m.req));
+  //   const responses = await Promise.allSettled(promises);
+  //   for (let i = 0; i < requests.length; i++) {
+  //     const res = responses[i];
+  //     if (this.isRejected(res)) {
+  //       console.warn(`Failed to fetch shows ${requests[i].title}`, res.reason);
+  //       shows.push({
+  //         title: requests[i].title,
+  //         shows: [],
+  //         visible: requests[i].visible,
+  //       });
+  //     } else if (this.isFulfilled(res)) {
+  //       if (
+  //         requestTypesNeedUpdateMediaType.indexOf(requests[i].req.requestType) >
+  //         -1
+  //       ) {
+  //         res.value.data.results.forEach(
+  //           (f) => (f.media_type = requests[i].req.mediaType),
+  //         );
+  //       }
+  //       shows.push({
+  //         title: requests[i].title,
+  //         shows: res.value.data.results,
+  //         visible: requests[i].visible,
+  //       });
+  //     } else {
+  //       throw new Error('unexpected response');
+  //     }
+  //   }
+  //   shows.forEach((movie, index) => {
+  //     console.log(`Movie title::`, movie.title);
+  //     console.log(`Movie detail:`, movie.shows[0]);
+  //     console.log('-----------------------');
+  // });
+
+  //   return shows;
+  // });
+
   static getShows = cache(async (requests: ShowRequest[]) => {
     const shows: CategorizedShows[] = [];
     const promises = requests.map((m) => this.executeRequest(m.req));
@@ -150,6 +190,12 @@ class MovieService extends BaseService {
         throw new Error('unexpected response');
       }
     }
+    shows.forEach((movie, index) => {
+      console.log(`Movie title::`, movie.title);
+      console.log(`Movie detail:`, movie.shows[0]);
+      console.log('-----------------------');
+    });
+
     return shows;
   });
 
