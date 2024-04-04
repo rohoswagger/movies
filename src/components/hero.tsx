@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { MediaType, type Show } from '@/types';
+import { MediaType, MovieType, type Show } from '@/types';
 import { useSearchStore } from '@/stores/search';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
@@ -63,15 +63,25 @@ const Hero = ({ shows }: HeroProps) => {
     return null;
   }
 
+  const getImageLink = () => {
+    if (randomShow && randomShow.type == MovieType.ANIME) {
+      return randomShow.backdrop_path;
+    }
+    return `https://image.tmdb.org/t/p/original/${
+      randomShow?.backdrop_path ?? randomShow?.poster_path ?? ''
+    }`;
+  };
+
   return (
     <section aria-label="Hero" className="w-full">
       {randomShow && (
         <>
           <div className="absolute inset-0 z-0 h-[100vw] w-full sm:h-[56.25vw]">
             <Image
-              src={`https://image.tmdb.org/t/p/original/${
-                randomShow?.backdrop_path ?? randomShow?.poster_path ?? ''
-              }`}
+              // src={`https://image.tmdb.org/t/p/original/${
+              //   randomShow?.backdrop_path ?? randomShow?.poster_path ?? ''
+              // }`}
+              src={getImageLink()}
               alt={randomShow?.title ?? 'poster'}
               className="-z-40 h-auto w-full object-cover"
               fill

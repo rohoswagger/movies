@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useModalStore } from '@/stores/modal';
-import { MediaType, type Show } from '@/types';
+import { MediaType, MovieType, type Show } from '@/types';
 
 import { cn, getNameFromShow, getSlug } from '@/lib/utils';
 import { Icons } from '@/components/icons';
@@ -102,7 +102,16 @@ export const ShowCard = ({
   ) => {
     event.currentTarget.src = '/images/grey-thumbnail.jpg';
   };
-
+  const getImageLink = () => {
+    if (show.type == MovieType.ANIME) {
+      return show.poster_path;
+    }
+    return show.poster_path ?? show.backdrop_path
+      ? `https://image.tmdb.org/t/p/w500/${
+          show.poster_path ?? show.backdrop_path
+        }`
+      : '/images/grey-thumbnail.jpg';
+  };
   return (
     // <picture className="relative aspect-[2/3] md:aspect-video">
     <picture className="relative aspect-[2/3]">
@@ -125,13 +134,7 @@ export const ShowCard = ({
       {/*   media="(min-width: 780px)" */}
       {/* /> */}
       <img
-        src={
-          show.poster_path ?? show.backdrop_path
-            ? `https://image.tmdb.org/t/p/w500/${
-                show.poster_path ?? show.backdrop_path
-              }`
-            : '/images/grey-thumbnail.jpg'
-        }
+        src={getImageLink()}
         alt={show.title ?? show.name ?? 'poster'}
         className="h-full w-full cursor-pointer rounded-lg px-1 transition-all md:hover:scale-110"
         style={{

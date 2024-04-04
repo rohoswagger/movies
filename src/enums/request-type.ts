@@ -1,5 +1,6 @@
 import { type MediaType, type Show } from '@/types';
 import { type Genre } from './genre';
+import { AnimeRequest } from './anime-request-type';
 
 export enum RequestType {
   TRENDING = 'trending',

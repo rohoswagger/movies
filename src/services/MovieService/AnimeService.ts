@@ -1,30 +1,27 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { getNameFromShow, getSlug } from '@/lib/utils';
-import type {
-  CategorizedShows,
-  KeyWordResponse,
+import {
+  type CategorizedShows,
+  type KeyWordResponse,
   MediaType,
-  Show,
-  ShowWithGenreAndVideo,
+  MovieType,
+  type Show,
+  type ShowWithGenreAndVideo,
 } from '@/types';
 import { type AxiosResponse } from 'axios';
 import BaseService from '../BaseService/BaseService';
-import {
-  RequestType,
-  type ShowRequest,
-  type TmdbPagingResponse,
-  type TmdbRequest,
-} from '@/enums/request-type';
-import { Genre } from '@/enums/genre';
+import { type TmdbPagingResponse } from '@/enums/request-type';
 import { cache } from 'react';
-
-const requestTypesNeedUpdateMediaType = [
-  RequestType.TOP_RATED,
-  RequestType.NETFLIX,
-  RequestType.POPULAR,
-  RequestType.GENRE,
-  RequestType.KOREAN,
-];
+import {
+  type AnilistResponseData,
+  type AnimeFormatType,
+  type AnimeRequest,
+  AnimeRequestType,
+  type AnimeShowRequest,
+  type AnimeSort,
+  type AnimeType,
+  type Media,
+} from '@/enums/anime-request-type';
 const baseUrl = 'https://graphql.anilist.co/';
 
 class AnimeService extends BaseService {
@@ -73,13 +70,21 @@ class AnimeService extends BaseService {
     return Promise.resolve(response.data);
   });
 
-  static variablesBuilder(req: TmdbRequest) {
+  static variablesBuilder(req: AnimeRequest) {
     switch (req.requestType) {
-      case RequestType.TRENDING:
+      case AnimeRequestType.TRENDING:
         return {
-          page: 1,
-          type: 'ANIME',
-          sort: ['TRENDING_DESC', 'POPULARITY_DESC'],
+          page: req.page,
+          type: req.type,
+          sort: req.sort,
+        };
+      case AnimeRequestType.POPULAR:
+        return {
+          page: req.page,
+          type: req.type,
+          sort: req.sort,
+          season: 'SPRING',
+          seasonYear: 2024,
         };
       default:
         throw new Error(
@@ -89,19 +94,24 @@ class AnimeService extends BaseService {
   }
 
   static executeRequest(req: {
-    requestType: RequestType;
-    mediaType: MediaType;
+    requestType: AnimeRequestType;
+    type: AnimeType;
+    format?: AnimeFormatType[];
+    sort?: AnimeSort[];
     page?: number;
-    sort?: string[];
   }) {
     const query = `query($page:Int = 1 $id:Int $type:MediaType $isAdult:Boolean = false $search:String $format:[MediaFormat]$status:MediaStatus $countryOfOrigin:CountryCode $source:MediaSource $season:MediaSeason $seasonYear:Int $year:String $onList:Boolean $yearLesser:FuzzyDateInt $yearGreater:FuzzyDateInt $episodeLesser:Int $episodeGreater:Int $durationLesser:Int $durationGreater:Int $chapterLesser:Int $chapterGreater:Int $volumeLesser:Int $volumeGreater:Int $licensedBy:[Int]$isLicensed:Boolean $genres:[String]$excludedGenres:[String]$tags:[String]$excludedTags:[String]$minimumTagRank:Int $sort:[MediaSort]=[POPULARITY_DESC,SCORE_DESC]){Page(page:$page,perPage:20){pageInfo{total perPage currentPage lastPage hasNextPage}media(id:$id type:$type season:$season format_in:$format status:$status countryOfOrigin:$countryOfOrigin source:$source search:$search onList:$onList seasonYear:$seasonYear startDate_like:$year startDate_lesser:$yearLesser startDate_greater:$yearGreater episodes_lesser:$episodeLesser episodes_greater:$episodeGreater duration_lesser:$durationLesser duration_greater:$durationGreater chapters_lesser:$chapterLesser chapters_greater:$chapterGreater volumes_lesser:$volumeLesser volumes_greater:$volumeGreater licensedById_in:$licensedBy isLicensed:$isLicensed genre_in:$genres genre_not_in:$excludedGenres tag_in:$tags tag_not_in:$excludedTags minimumTagRank:$minimumTagRank sort:$sort isAdult:$isAdult){id title{userPreferred}coverImage{extraLarge large color}startDate{year month day}endDate{year month day}bannerImage season seasonYear description type format status(version:2)episodes duration chapters volumes genres isAdult averageScore popularity nextAiringEpisode{airingAt timeUntilAiring episode}mediaListEntry{id status}studios(isMain:true){edges{isMain node{id name}}}}}}`;
 
     const variables = this.variablesBuilder(req);
+    console.log('variables', variables);
 
-    return this.axios(baseUrl).post('', { query, variables });
+    return this.axios(baseUrl).post<AnilistResponseData>('', {
+      query,
+      variables,
+    });
   }
 
-  static getShowsAnime = cache(async (requests: ShowRequest[]) => {
+  static getShowsAnime = cache(async (requests: AnimeShowRequest[]) => {
     const shows: CategorizedShows[] = [];
     const promises = requests.map((m) => this.executeRequest(m.req));
     const responses = await Promise.allSettled(promises);
@@ -115,19 +125,14 @@ class AnimeService extends BaseService {
           visible: requests[i].visible,
         });
       } else if (this.isFulfilled(res)) {
-        console.log('first', res.value.data.data.Page.media);
-        // if (
-        //   requestTypesNeedUpdateMediaType.indexOf(requests[i].req.requestType) > -1
-        // ) {
-        //   res.value.data.results.forEach(
-        //     (f) => (f.media_type = requests[i].req.mediaType),
-        //   );
-        // }
-        // shows.push({
-        //   title: requests[i].title,
-        //   shows: res.value.data.results,
-        //   visible: requests[i].visible,
-        // });
+        const animes = res.value.data.data.Page.media.map((anime) =>
+          this.convertMovieModel(anime),
+        );
+        shows.push({
+          title: requests[i].title,
+          shows: animes,
+          visible: requests[i].visible,
+        });
       } else {
         throw new Error('unexpected response');
       }
@@ -153,6 +158,46 @@ class AnimeService extends BaseService {
     });
     return data;
   });
+
+  static convertMovieModel = (anime: Media) => {
+    const data: Show = {
+      adult: anime.isAdult,
+      backdrop_path: anime.bannerImage,
+      media_type: MediaType.MOVIE,
+      id: anime.id,
+      original_title: anime.title.userPreferred,
+      overview: anime.description,
+      popularity: anime.popularity,
+      poster_path: anime.coverImage.extraLarge,
+      number_of_episodes: anime.episodes,
+      release_date:
+        anime.startDate.year +
+        '-' +
+        anime.startDate.month +
+        '-' +
+        anime.startDate.day,
+      title: anime.title.userPreferred,
+      name: anime.title.userPreferred,
+      vote_average: anime.averageScore,
+      genres: anime.genres,
+      budget: null,
+      homepage: null,
+      showId: '',
+      imdb_id: null,
+      original_language: '',
+      number_of_seasons: null,
+      first_air_date: null,
+      last_air_date: null,
+      revenue: null,
+      runtime: null,
+      status: null,
+      tagline: null,
+      video: false,
+      vote_count: 0,
+      type: MovieType.ANIME,
+    };
+    return data;
+  };
 }
 
 export default AnimeService;

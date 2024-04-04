@@ -1,8 +1,11 @@
-// import type { MEDIA_TYPE } from "@prisma/client";
-
 export enum MediaType {
   ALL = 'all',
   TV = 'tv',
+  MOVIE = 'movie',
+}
+
+export enum MovieType {
+  ANIME = 'anime',
   MOVIE = 'movie',
 }
 
@@ -51,6 +54,9 @@ export type Show = {
   vote_average: number;
   vote_count: number;
   original_name?: string;
+  // anime
+  genres: string[];
+  type: MovieType | MovieType.MOVIE;
 };
 
 export type KeyWord = {
@@ -103,3 +109,26 @@ export interface IStack<T> {
   peek(): T | undefined;
   size(): number;
 }
+
+// anime
+export type StartDate = {
+  year: number;
+  month: number;
+  day: number;
+};
+
+export type EndDate = {
+  year: number;
+  month: number;
+  day: number;
+};
+
+export type Title = {
+  userPreferred: string;
+};
+
+export type CoverImage = {
+  extraLarge: string;
+  large: string;
+  color: string;
+};

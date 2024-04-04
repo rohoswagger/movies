@@ -7,6 +7,8 @@ import {
   type Genre,
   type ShowWithGenreAndVideo,
   type VideoResult,
+  MovieType,
+  type Show,
 } from '@/types';
 import Youtube from 'react-youtube';
 import Image from 'next/image';
@@ -147,6 +149,18 @@ const ShowModal = () => {
     }
   };
 
+  const getImageLink = () => {
+    const data: Show = modalStore.show;
+    if (data.type == MovieType.ANIME) {
+      return data.poster_path;
+    }
+    return data.poster_path ?? data.backdrop_path
+      ? `https://image.tmdb.org/t/p/w500/${
+          data.poster_path ?? data.backdrop_path
+        }`
+      : '/images/grey-thumbnail.jpg';
+  };
+
   return (
     <Dialog
       open={modalStore.open}
@@ -160,7 +174,7 @@ const ShowModal = () => {
             ref={imageRef}
             alt={modalStore?.show?.title ?? 'poster'}
             className="-z-40 z-[1] h-auto w-full object-cover"
-            src={`https://image.tmdb.org/t/p/original/${modalStore.show?.backdrop_path}`}
+            src={getImageLink()}
           />
           {trailer && (
             <Youtube
