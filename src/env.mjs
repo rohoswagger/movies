@@ -1,6 +1,5 @@
 import { createEnv } from '@t3-oss/env-nextjs';
 import { z } from 'zod';
-
 export const env = createEnv({
   /**
    * Specify your server-side environment variables schema here. This way you can ensure the app
@@ -24,6 +23,7 @@ export const env = createEnv({
     NEXT_PUBLIC_FACEBOOK: z.string().url().optional(),
     NEXT_PUBLIC_INSTAGRAM: z.string().url().optional(),
     NEXT_PUBLIC_YOUTUBE: z.string().url().optional(),
+    NEXT_PUBLIC_ANIME_SITE: z.string(),
   },
 
   /**
@@ -44,6 +44,7 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_INSTAGRAM ?? 'https://instagram.com',
     NEXT_PUBLIC_YOUTUBE:
       process.env.NEXT_PUBLIC_YOUTUBE ?? 'https://youtube.com',
+    NEXT_PUBLIC_ANIME_SITE: process.env.NEXT_PUBLIC_ANIME_SITE ?? 'false',
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

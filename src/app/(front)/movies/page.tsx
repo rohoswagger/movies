@@ -10,7 +10,6 @@ export const revalidate = 3600;
 
 export default async function MoviePage() {
   const h1 = `${siteConfig.name} Movie`;
-  console.log('siteConfig.name', h1);
   const requests: ShowRequest[] = [
     {
       title: 'Trending Now',

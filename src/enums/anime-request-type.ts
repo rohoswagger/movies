@@ -106,10 +106,19 @@ export enum AnimeSort {
   POPULARITY_DESC = 'POPULARITY_DESC',
 }
 
+export enum SeasonType {
+  FALL = 'FALL',
+  WINTER = 'WINTER',
+  SPRING = 'SPRING',
+  SUMMER = 'SUMMER',
+}
+
 export type AnimeRequest = {
-  requestType: AnimeRequestType;
   type: AnimeType;
   format?: AnimeFormatType[];
+  year?: string;
+  seasonYear?: string;
+  season?: SeasonType;
   sort?: AnimeSort[];
   page?: number;
 };

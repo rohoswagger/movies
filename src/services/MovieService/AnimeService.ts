@@ -14,12 +14,8 @@ import { type TmdbPagingResponse } from '@/enums/request-type';
 import { cache } from 'react';
 import {
   type AnilistResponseData,
-  type AnimeFormatType,
   type AnimeRequest,
-  AnimeRequestType,
   type AnimeShowRequest,
-  type AnimeSort,
-  type AnimeType,
   type Media,
 } from '@/enums/anime-request-type';
 const baseUrl = 'https://graphql.anilist.co/';
@@ -71,35 +67,10 @@ class AnimeService extends BaseService {
   });
 
   static variablesBuilder(req: AnimeRequest) {
-    switch (req.requestType) {
-      case AnimeRequestType.TRENDING:
-        return {
-          page: req.page,
-          type: req.type,
-          sort: req.sort,
-        };
-      case AnimeRequestType.POPULAR:
-        return {
-          page: req.page,
-          type: req.type,
-          sort: req.sort,
-          season: 'SPRING',
-          seasonYear: 2024,
-        };
-      default:
-        throw new Error(
-          `request type ${req.requestType} is not implemented yet`,
-        );
-    }
+    return req;
   }
 
-  static executeRequest(req: {
-    requestType: AnimeRequestType;
-    type: AnimeType;
-    format?: AnimeFormatType[];
-    sort?: AnimeSort[];
-    page?: number;
-  }) {
+  static executeRequest(req: AnimeRequest) {
     const query = `query($page:Int = 1 $id:Int $type:MediaType $isAdult:Boolean = false $search:String $format:[MediaFormat]$status:MediaStatus $countryOfOrigin:CountryCode $source:MediaSource $season:MediaSeason $seasonYear:Int $year:String $onList:Boolean $yearLesser:FuzzyDateInt $yearGreater:FuzzyDateInt $episodeLesser:Int $episodeGreater:Int $durationLesser:Int $durationGreater:Int $chapterLesser:Int $chapterGreater:Int $volumeLesser:Int $volumeGreater:Int $licensedBy:[Int]$isLicensed:Boolean $genres:[String]$excludedGenres:[String]$tags:[String]$excludedTags:[String]$minimumTagRank:Int $sort:[MediaSort]=[POPULARITY_DESC,SCORE_DESC]){Page(page:$page,perPage:20){pageInfo{total perPage currentPage lastPage hasNextPage}media(id:$id type:$type season:$season format_in:$format status:$status countryOfOrigin:$countryOfOrigin source:$source search:$search onList:$onList seasonYear:$seasonYear startDate_like:$year startDate_lesser:$yearLesser startDate_greater:$yearGreater episodes_lesser:$episodeLesser episodes_greater:$episodeGreater duration_lesser:$durationLesser duration_greater:$durationGreater chapters_lesser:$chapterLesser chapters_greater:$chapterGreater volumes_lesser:$volumeLesser volumes_greater:$volumeGreater licensedById_in:$licensedBy isLicensed:$isLicensed genre_in:$genres genre_not_in:$excludedGenres tag_in:$tags tag_not_in:$excludedTags minimumTagRank:$minimumTagRank sort:$sort isAdult:$isAdult){id title{userPreferred}coverImage{extraLarge large color}startDate{year month day}endDate{year month day}bannerImage season seasonYear description type format status(version:2)episodes duration chapters volumes genres isAdult averageScore popularity nextAiringEpisode{airingAt timeUntilAiring episode}mediaListEntry{id status}studios(isMain:true){edges{isMain node{id name}}}}}}`;
 
     const variables = this.variablesBuilder(req);
@@ -137,12 +108,6 @@ class AnimeService extends BaseService {
         throw new Error('unexpected response');
       }
     }
-    shows.forEach((movie, index) => {
-      console.log(`Movie title::`, movie.title);
-      console.log(`Movie detail:`, movie.shows[0]);
-      console.log('-----------------------');
-    });
-
     return shows;
   });
 
@@ -162,7 +127,7 @@ class AnimeService extends BaseService {
   static convertMovieModel = (anime: Media) => {
     const data: Show = {
       adult: anime.isAdult,
-      backdrop_path: anime.bannerImage,
+      backdrop_path: anime.coverImage.extraLarge,
       media_type: MediaType.MOVIE,
       id: anime.id,
       original_title: anime.title.userPreferred,
