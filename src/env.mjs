@@ -23,7 +23,11 @@ export const env = createEnv({
     NEXT_PUBLIC_FACEBOOK: z.string().url().optional(),
     NEXT_PUBLIC_INSTAGRAM: z.string().url().optional(),
     NEXT_PUBLIC_YOUTUBE: z.string().url().optional(),
-    NEXT_PUBLIC_ANIME_SITE: z.string(),
+    NEXT_PUBLIC_ANIME_SITE: z
+      .string()
+      .toLowerCase()
+      .transform((x) => x === 'true')
+      .pipe(z.boolean()),
   },
 
   /**

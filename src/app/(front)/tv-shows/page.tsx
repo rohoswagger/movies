@@ -1,74 +1,20 @@
 import Hero from '@/components/hero';
 import ShowsContainer from '@/components/shows-container';
 import { siteConfig } from '@/configs/site';
-import { Genre } from '@/enums/genre';
-import { RequestType, type ShowRequest } from '@/enums/request-type';
+import { AnimeTVShowRequest } from '@/constain/AnimeContains';
+import { TvShowRequest } from '@/constain/MovieContains';
+import { env } from '@/env.mjs';
 import MovieService from '@/services/MovieService';
-import { MediaType } from '@/types';
+import AnimeService from '@/services/MovieService/AnimeService';
 
 export const revalidate = 3600;
 
 export default async function TvShowPage() {
   const h1 = `${siteConfig.name} TV Shows`;
-  const requests: ShowRequest[] = [
-    {
-      title: 'Trending Now',
-      req: { requestType: RequestType.TRENDING, mediaType: MediaType.TV },
-      visible: true,
-    },
-    {
-      title: 'Netflix TV Shows',
-      req: { requestType: RequestType.NETFLIX, mediaType: MediaType.TV },
-      visible: true,
-    },
-    {
-      title: 'Popular',
-      req: {
-        requestType: RequestType.TOP_RATED,
-        mediaType: MediaType.TV,
-        genre: Genre.FAMILY,
-      },
-      visible: true,
-    },
-    {
-      title: 'Comedy TV Shows',
-      req: {
-        requestType: RequestType.GENRE,
-        mediaType: MediaType.TV,
-        genre: Genre.COMEDY,
-      },
-      visible: true,
-    },
-    {
-      title: 'Action TV Shows',
-      req: {
-        requestType: RequestType.GENRE,
-        mediaType: MediaType.TV,
-        genre: Genre.ACTION_ADVENTURE,
-      },
-      visible: true,
-    },
-    {
-      title: 'Drama TV Shows',
-      req: {
-        requestType: RequestType.GENRE,
-        mediaType: MediaType.TV,
-        genre: Genre.DRAMA,
-      },
-      visible: true,
-    },
-    {
-      title: 'Scary TV Shows',
-      req: {
-        requestType: RequestType.GENRE,
-        mediaType: MediaType.TV,
-        genre: Genre.THRILLER,
-      },
-      visible: true,
-    },
-  ];
-  const allShows = await MovieService.getShows(requests);
-
+  const animeSite = env.NEXT_PUBLIC_ANIME_SITE;
+  const allShows = animeSite
+    ? await AnimeService.getShowsAnime(AnimeTVShowRequest)
+    : await MovieService.getShows(TvShowRequest);
   return (
     <>
       <h1 className="hidden">{h1}</h1>

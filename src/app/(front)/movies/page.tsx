@@ -1,69 +1,20 @@
 import Hero from '@/components/hero';
 import ShowsContainer from '@/components/shows-container';
 import { siteConfig } from '@/configs/site';
-import { Genre } from '@/enums/genre';
-import { RequestType, type ShowRequest } from '@/enums/request-type';
+import { AnimeMovieRequest } from '@/constain/AnimeContains';
+import { MovieRequest } from '@/constain/MovieContains';
+import { env } from '@/env.mjs';
 import MovieService from '@/services/MovieService';
-import { MediaType } from '@/types';
+import AnimeService from '@/services/MovieService/AnimeService';
 
 export const revalidate = 3600;
 
 export default async function MoviePage() {
   const h1 = `${siteConfig.name} Movie`;
-  const requests: ShowRequest[] = [
-    {
-      title: 'Trending Now',
-      req: { requestType: RequestType.TRENDING, mediaType: MediaType.MOVIE },
-      visible: true,
-    },
-    {
-      title: 'Netflix Movies',
-      req: { requestType: RequestType.NETFLIX, mediaType: MediaType.MOVIE },
-      visible: true,
-    },
-    {
-      title: 'Popular',
-      req: { requestType: RequestType.POPULAR, mediaType: MediaType.MOVIE },
-      visible: true,
-    },
-    {
-      title: 'Comedy Movies',
-      req: {
-        requestType: RequestType.GENRE,
-        mediaType: MediaType.MOVIE,
-        genre: Genre.COMEDY,
-      },
-      visible: true,
-    },
-    {
-      title: 'Action Movies',
-      req: {
-        requestType: RequestType.GENRE,
-        mediaType: MediaType.MOVIE,
-        genre: Genre.ACTION,
-      },
-      visible: true,
-    },
-    {
-      title: 'Romance Movies',
-      req: {
-        requestType: RequestType.GENRE,
-        mediaType: MediaType.MOVIE,
-        genre: Genre.ROMANCE,
-      },
-      visible: true,
-    },
-    {
-      title: 'Scary Movies',
-      req: {
-        requestType: RequestType.GENRE,
-        mediaType: MediaType.MOVIE,
-        genre: Genre.THRILLER,
-      },
-      visible: true,
-    },
-  ];
-  const allShows = await MovieService.getShows(requests);
+  const animeSite = env.NEXT_PUBLIC_ANIME_SITE;
+  const allShows = animeSite
+    ? await AnimeService.getShowsAnime(AnimeMovieRequest)
+    : await MovieService.getShows(MovieRequest);
 
   return (
     <>
